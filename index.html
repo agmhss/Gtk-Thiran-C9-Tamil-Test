@@ -154,7 +154,7 @@ const questions = [
   { sentence: "நேற்று நான் பாலை _____________.", chapter:"காலம்", options:["குடிக்கிறேன்","குடித்தேன்","குடிப்பேன்","குடித்துக்கொள்கிறேன்"], answer:1, explanation:"‘நேற்று’ என்பது இறந்தகாலச் சொல். ஆகவே ‘குடித்தேன்’ சரியானது." },
   { sentence: "நாளை நீ பள்ளிக்குச் _____________.", chapter:"காலம்", options:["சென்றாய்","செல்வாள்","செல்வாய்","சென்றிருந்தாய்"], answer:2, explanation:"‘நாளை’ என்பதால் எதிர்காலம் ‘செல்வாய்’ சரியானது." },
   { sentence: "அவள் புத்தகத்தை மிகச் செம்மையாக _____________.", chapter:"வினை", options:["படித்தான்","படிக்கிறாள்","படிப்பார்","படித்திரு"], answer:1, explanation:"இப்போது படிக்கும் செயலைக் குறிக்கும். ஆகவே ‘படிக்கிறாள்’ சரி." },
-  { sentence: "நான் நேற்று ஒரு கடிதம் _____________.", chapter:"வினை", options:["எழுதியேன்","எழுதுகிறேன்","எழுதுவேன்","எழுதி கொள்ளலாம்"], answer:0, explanation:"‘நேற்று’ என்பதால் இறந்தகாலம் ‘எழுதியேன்’ சரியானது." },
+  { sentence: "நான் நேற்று ஒரு கடிதம் _____________.", chapter:"வினை", options:["எழுதினேன்","எழுதுகிறேன்","எழுதுவேன்","எழுதி கொள்ளலாம்"], answer:0, explanation:"‘நேற்று’ என்பதால் இறந்தகாலம் ‘எழுதியேன்’ சரியானது." },
   { sentence: "பறவைகள் காலை நேரத்தில் இனிமையாக _____________.", chapter:"திமை", options:["பாடுகின்றன","பாடினார்","பாடு","பாடினார்கள்"], answer:0, explanation:"நிகழ்காலப் பன்மை செயல் என்பதால் ‘பாடுகின்றன’ சரியானது." },
   { sentence: "அவன் உணவை _____________.", chapter:"இமை", options:["உண்ணுகிறாள்","உண்டான்","உண்பார்","உருண்டான்"], answer:1, explanation:"இப்போது நடக்கும் செயல் என்பதால் ‘உண்ணுகிறான்’ சரியானது." },
   { sentence: "நாய் தோட்டத்தில் _____________.", chapter:"திமை", options:["ஓட்டுகிறது","ஓடியது","ஓடுவான்","ஓடியிருந்ததான்"], answer:1, explanation:"நிகழ்கால செயல் என்பதால் ‘ஓடுகிறது’ சரி." },
@@ -171,7 +171,7 @@ const questions = [
   { sentence: "நேற்று நான் கடிதம் _____________.", chapter:"காலம்", options:["எழுதினேன்","எழுதுகிறேன்","எழுதுவேன்","எழுதியிருப்பேன்"], answer:0, explanation:"இறந்தகாலச் சொல் என்பதால் ‘எழுதியேன்’ சரியானது." },
   { sentence: "பூங்காவில் குழந்தைகள் மகிழ்ச்சியாக _____________.", chapter:"வினை", options:["விளையாட","விளையாடுகின்றனர்","விளையாடுவாள்","விளையாடு"], answer:1, explanation:"நிகழ்கால செயல் என்பதால் ‘விளையாடுகின்றனர்’ சரியானது." },
   { sentence: "மலர்கள் காலையில் இனிமையாக _____________.", chapter:"இமை", options:["மலர்கின்றன","மலர்ந்த","மலரும்","மலர்ந்திருந்த"], answer:0, explanation:"இப்போது மலர்வதால் ‘மலர்கின்றன’ சரியானது." },
-  { sentence: "அவள் நேற்று பாடத்த _____________.", chapter:"காலம்", options:["படித்தாள்","படிக்கிறாள்","படிப்பாள்","படித்திருப்பாள்"], answer:0, explanation:"‘நேற்று’ என்பதால் இறந்தகாலம் ‘படித்தாள்’ சரி." },
+  { sentence: "அவள் நேற்று பாடத்தை _____________.", chapter:"காலம்", options:["படித்தாள்","படிக்கிறாள்","படிப்பாள்","படித்திருப்பாள்"], answer:0, explanation:"‘நேற்று’ என்பதால் இறந்தகாலம் ‘படித்தாள்’ சரி." },
   { sentence: "நாளை மழை _____________.", chapter:"காலம்", options:["பெய்தது","பெய்கிறது","பெய்யும்","பெய்திரு"], answer:2, explanation:"எதிர்காலம் என்பதால் ‘பெய்யும்’ சரியானது." },
   { sentence: "நான் தினமும் பாலை _____________.", chapter:"இமை", options:["குடிக்கிறேன்","குடித்தேன்","குடி","குடித்திரு"], answer:0, explanation:"பழக்கச் செயல் என்பதால் நிகழ்காலம் ‘குடிக்கிறேன்’ சரியானது." },
   { sentence: "குட்டி நாய் சாலையில் _____________.", chapter:"திமை", options:["ஓடுகிறது","ஓடு","ஓடும்","ஓடியிரு"], answer:0, explanation:"இப்போது செயல் நிகழ்வதால் ‘ஓடுகிறது’ சரியானது." },
@@ -418,22 +418,22 @@ function generateCertificate(finalPctVal, excellentChapters = [], needsWorkChapt
   // Header
   ctx.fillStyle = '#2b6cb0';
   ctx.font = '40px Georgia';
-  let text = 'திறன் தமிழ் தேர்வு';
+  let text = 'ஜிடிகே திறன் தமிழ் தேர்வு';
   let metrics = ctx.measureText(text);
   let x = (certCanvas.width - metrics.width) / 2;
   ctx.fillText(text, x, 100);
-  ctx.font = '60px Georgia';
-  text = 'அடைவு சான்றிதழ் ';
+  ctx.font = '50px Georgia';
+  text = 'பாராட்டுச் சான்றிதழ் ';
   metrics = ctx.measureText(text);
   x = (certCanvas.width - metrics.width) / 2;
   ctx.fillText(text, x, 170);
   ctx.fillStyle = '#333';
   ctx.font = '32px Arial';
-  text = 'இந்த சான்றிதழ் அளிக்கப்படுகிறது';
+  text = 'அளிக்கப்படுகிறது';
   metrics = ctx.measureText(text);
   x = (certCanvas.width - metrics.width) / 2;
   ctx.fillText(text, x, 230);
-  ctx.font = 'bold 46px Arial';
+  ctx.font = 'bold 40px Arial';
   ctx.fillStyle = '#0b6';
   ctx.fillText(name, 90, 290);
   ctx.font = '24px Arial';
@@ -470,7 +470,7 @@ function generateCertificate(finalPctVal, excellentChapters = [], needsWorkChapt
     if(line){ ctx.fillText(line.trim(), 90, y); y += 30; }
   });
   const d = new Date().toLocaleDateString();
-  ctx.font = '18px Arial';
+  ctx.font = '22px Arial';
   ctx.fillStyle = '#666';
   ctx.fillText(`Date: ${d}`, 90, certCanvas.height - 80);
   const dataURL = certCanvas.toDataURL('image/png');
