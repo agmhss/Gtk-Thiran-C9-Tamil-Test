@@ -1,0 +1,509 @@
+<!DOCTYPE html>
+<html lang="ta">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>திறன் தமிழ் கொள்குறி தேர்வு</title>
+<style>
+  :root{--bg1:#f0f7ff;--card:#fff;--accent:#2b6cb0;--ok:#16a34a;--bad:#dc2626}
+  html,body{height:100%;margin:0;font-family:Inter,Arial,sans-serif;background:linear-gradient(180deg,var(--bg1),#e6f0ff);display:flex;align-items:center;justify-content:center;padding:12px}
+  .wrap{width:100%;max-width:720px;background:var(--card);border-radius:14px;box-shadow:0 10px 30px rgba(20,30,60,.12);padding:18px}
+  header{display:flex;align-items:center;gap:12px;margin-bottom:10px;flex-wrap:wrap}
+  header h1{margin:0;font-size:1.2rem;color:var(--accent)}
+  .meta{margin-left:auto;text-align:right;font-size:.9rem}
+  .score{font-weight:700;color:#0b6;display:block;font-size:1.4rem}
+  .card{padding:14px;border-radius:10px;border:1px solid #eef5ff;background:linear-gradient(180deg,#fff,#fbfdff);margin-bottom:12px}
+  .sentence{font-size:1.1rem;padding:10px;border-radius:8px;background:#f7fbff;border:1px dashed #dfeeff;min-height:48px;display:flex;align-items:center}
+  .options{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}
+  .opt{padding:10px;border-radius:8px;border:1px solid #e6eefc;background:white;cursor:pointer;user-select:none}
+  .opt.selected{outline:3px solid rgba(43,108,176,.12)}
+  .opt.correct{border-color:var(--ok);background:rgba(16,185,129,.06)}
+  .opt.wrong{border-color:var(--bad);background:rgba(220,38,38,.04)}
+  .controls{display:flex;gap:8px;align-items:center;margin-top:12px;flex-wrap:wrap}
+  button{background:var(--accent);color:#fff;border:0;padding:10px 14px;border-radius:8px;cursor:pointer}
+  .btn-ghost{background:#fff;border:1px solid #dbeefe;color:var(--accent)}
+  .progress{height:8px;background:#eef6ff;border-radius:8px;margin-top:8px;overflow:hidden}
+  .progress > i{display:block;height:100%;background:linear-gradient(90deg,#2b6cb0,#4f9ae6);width:0%}
+  .feedback{margin-top:8px;font-weight:700;min-height:22px}
+  .hall{margin-top:10px;padding:10px;border-radius:8px;background:#fff7ef;border:1px solid #ffe8cc}
+  .hof-list{margin-top:8px}
+  .hof-item{display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px dashed #fff2e6}
+  .certificate{display:none}
+  .hidden { display:none; }
+  .download-link{margin-top:10px;display:none}
+  @media(max-width:520px){
+    .options{grid-template-columns:1fr}
+    header{gap:8px}
+    .meta{text-align:left;margin-left:0}
+    #playerDetails{flex-direction:column}
+    #playerDetails input{flex:1 1 100%; width:100%}
+  }
+</style>
+</head>
+<body>
+  <div class="wrap" role="application" aria-label="Tamil Grammar Guardian">
+    <header>
+      <div>
+        <h1>திறன் தமிழ் கொள்குறி தேர்வு</h1>
+        <div style="font-size:.88rem;color:#556">வாக்கியங்களை திருத்து — தமிழ் இலக்கணத்தை கற்று</div>
+      </div>
+      <div class="meta" aria-live="polite">
+        <div>மதிப்பெண்: <span id="currentScore" class="score">0</span></div>
+      </div>
+    </header>
+
+    <div class="card" id="questionCard" aria-live="polite">
+      <div class="sentence" id="sentence">வினா ஏற்றப்படுகிறது...</div>
+
+      <div class="options" id="options"></div>
+
+      <div class="controls">
+        <button id="submitBtn">பதில் சமர்ப்பிக்க</button>
+        <button id="skipBtn" class="btn-ghost">தவிர்</button>
+        <div style="margin-left:auto;font-size:.9rem;color:#667">கேள்வி <span id="qIndex">0</span>/<span id="qTotal">0</span></div>
+      </div>
+
+      <div class="progress" aria-hidden="true"><i id="progressBar"></i></div>
+      <div class="feedback" id="feedback" aria-live="polite"></div>
+    </div>
+
+    <!-- Player details for certificate -->
+    <div id="playerDetails" style="display:flex;gap:10px;flex-wrap:wrap;margin-top:10px">
+      <input id="playerName" placeholder="பெயர்" style="padding:8px;border-radius:6px;border:1px solid #e1eefc;flex:1 1 30%" maxlength="50" />
+      <input id="playerClass" placeholder="வகுப்பு" style="padding:8px;border-radius:6px;border:1px solid #e1eefc;flex:1 1 30%" maxlength="20" />
+      <input id="playerSection" placeholder="பிரிவு" style="padding:8px;border-radius:6px;border:1px solid #e1eefc;flex:1 1 30%" maxlength="20" />
+    </div>
+
+    <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:10px">
+      <button id="startBtn">தொடங்கு</button>
+      <button id="showHofBtn" class="btn-ghost">Hall of Fame காண்க</button>
+    </div>
+
+    <div class="hall hidden" id="hall" aria-live="polite">
+      <strong>Hall of Fame (Top 10)</strong>
+      <div class="hof-list" id="hofList"></div>
+      <div style="margin-top:10px">
+        <div style="font-size:.95rem">உங்கள் பெயரை உள்ளிடவும்:</div>
+        <input id="hofName" placeholder="உங்கள் பெயர்" style="padding:8px;border-radius:6px;border:1px solid #e1eefc;width:60%;margin-top:8px" maxlength="30"/>
+        <button id="saveHofBtn" style="margin-left:8px">சேமி</button>
+      </div>
+    </div>
+
+    <canvas id="certificate" class="certificate" width="1000" height="700"></canvas>
+    <a id="certDownloadLink" class="download-link" download="tamil_certificate.png">சான்றிதழை பதிவிறக்கு</a>
+  </div>
+
+<script>
+/* ======= Tamil Question bank ======= */
+const questions = [
+  { sentence: "அவள் ஒவ்வொரு சனிக்கிழமையும் கடைக்கு _____________.", chapter:"காலம்", options:["சென்றாள்","செல்கிறாள்","சென்றுகொண்டே","செல்வாள்"], answer:1, explanation:"ஒவ்வொரு சனிக்கிழமையும் என்பது பழக்கத்தை குறிக்கும். அதனால் தற்போதைய காலம் 'செல்கிறாள்' சரி." },
+  { sentence: "நாம் நேற்று ____ சினிமா பார்த்தோம்.", chapter:"வேற்றுமை", options:["ஒரே","ஒன்று","எது","ஒரு"], answer:3, explanation:"பொருளைக் குறிக்க 'ஒரு' என்ற விகுதி பயன்படுத்தப்படுகிறது." },
+  { sentence: "நீ ____ தமிழ் பேசுகிறாயா?", chapter:"வினைவினா", options:["எங்கே","எவ்வளவு","எப்பொழுதும்","எவ்வாறு"], answer:2, explanation:"'எப்பொழுதும்' என்பது 'always' என்பதை குறிக்கும்." },
+  { sentence: "நாங்கள் நாளை _____________.", chapter:"காலம்", options:["வந்தோம்","வருவோம்","வருவார்","வந்தேன்"], answer:1, explanation:"எதிர்காலத்தில் 'வருவோம்' பெருமை." },
+  { sentence: "அவனைப் பார்த்ததும், அவள் ____ ஓடினாள்.", chapter:"இணைப்புச் சொல்", options:["அதனால்","உடனே","ஆனால்","எனவே"], answer:1, explanation:"'உடனே' என்பது 'immediately' என்பதை குறிக்கும்." },
+  { sentence: "அவர்களுக்கு ____ பரிசு வழங்கப்பட்டது.", chapter:"அகராதி", options:["மந்த","ஒன்று","ஒரேயடியாக","ஒரு"], answer:3, explanation:"அதிகார விகுதி இல்லாமல் 'ஒரு' என்பது ஒழுங்கு." },
+  { sentence: "நான் தினமும் பாலையும், பழங்களையும் ____ காய்கறிகளையும் உணவாக கொள்கிறேன்.", chapter:"இணைப்புச் சொல்", options:["போல்","விட்டு","உடன்","மற்றும்"], answer:3, explanation:"'மற்றும்' என்பது 'and' என்பதை இணைக்கிறது." },
+  { sentence: "அவள் பாடத்தை ____ படித்தாள்.", chapter:"காலம்", options:["கடுமையாக","சரி","நன்றாக","கட்டளை"], answer:2, explanation:"'நன்றாக' என்பது 'well' என்பதை குறிக்கும்." },
+  { sentence: "அவன் ____ வீட்டுக்கு சென்றான்.", chapter:"பிரத்தியயம்", options:["அவளை","என்னை","தன்","உன்னை"], answer:2, explanation:"'தன்' என்பது பிரத்யயமான உடைமைச்சொல், அவனுடைய வீட்டை குறிக்கும்." },
+  { sentence: "நீ இன்று ____ செய்கிறாய்?", chapter:"வினைவினா", options:["என்று","என்ன","எண்ண","ஏற்கனவே"], answer:1, explanation:"'என்ன செய்கிறாய்' என்பது 'what are you doing' என்ற கேள்வி." },
+  { sentence: "அவர்கள் ____ விளையாடினார்கள்.", chapter:"இடம்", options:["பூங்கையில்","பூங்காவை","பூங்கையால்","பூங்காவில்"], answer:3, explanation:"இடத்தைக் குறிக்க இடப்பெயர் + '-இல்' என்று 'பூங்காவில்' பயன்படுகிறது." },
+  { sentence: "அவன் நாளை ____ நேரத்தில் வருவான்.", chapter:"பண்பு", options:["குறைவான","எல்லாம்","சரியான","தவறு"], answer:2, explanation:"'சரியான நேரம்' என்பது right time என்பதை குறிக்கும்." },
+  { sentence: "படிக்கவும்_________எழுதவும் இது முக்கியம்.", chapter:"இணைப்புச் சொல்", options:["ஏனெனில்","ஆனால்","மற்றும்","அதனால்"], answer:2, explanation:"இரு செயற்பாடுகளையும் இணைக்க 'மற்றும்' பயன்படுத்தப்படுகிறது." },
+  { sentence: "அவள் ____ உணர்ச்சி மிக்கவர்.", chapter:"பண்பு", options:["நன்றாக","இருந்து","எப்போது","ரொம்ப"], answer:3, explanation:"'ரொம்ப' என்பது 'very' என்ற அடுக்கினை தருகிறது." },
+  { sentence: "____ எங்கள் தலைமை ஆசிரியர்.", chapter:"சுட்டுச்சொல்", options:["இவள்","இது","இவன்","இவர்"], answer:3, explanation:"'இவர்' என்பது அருகில் உள்ளவரை காட்டும் சுட்டுச்சொல்." },
+  { sentence: "நீ வீட்டிற்கு ____.", chapter:"வினையாட்சி", options:["போகிறேன்","போ","போகிறார்","போவான்"], answer:1, explanation:"உத்தரவு வாக்கியத்தில் 'போ' என்பதே சரியானது." },
+  { sentence: "நாங்கள் ____ சந்திரனை நோக்கி பார்த்தோம்.", chapter:"இடம்", options:["வழி","அருகில்","மேலே","கீழே"], answer:2, explanation:"'மேலே' என்பது 'upwards' என்பதை குறிக்கும்." },
+  { sentence: "அவள் ______ பாடிக்கொண்டிருந்தாள்.", chapter:"பண்பு", options:["உடனே","ஆனந்தமாக","பட்டம்","கொஞ்சம்"], answer:1, explanation:"'ஆனந்தமாக' என்பது 'happily' என்ற கருத்தை தருகிறது." },
+  { sentence: "இது ____ புத்தகம் என்று நினைத்தேன்.", chapter:"பிரத்தியயம்", options:["எனக்கு","அவரது","அது","அவள்"], answer:1, explanation:"'அவரது' என்பது 'his' என பொருள் தரும் உடைமைச்சொல்." },
+  { sentence: "____ நாம் செல்வது?", chapter:"வினைவினா", options:["இவ்வாறு","ஏற்கனவே","எங்கு","எப்பொழுதுமே"], answer:2, explanation:"'எங்கு' என்பது 'where' என்ற கேள்வி." },
+  { sentence: "அவன் காலை உணவை ____ சாப்பிட்டான்.", chapter:"காலம்", options:["முன்னால்","நேற்று","நாளை","பிறரை"], answer:1, explanation:"'நேற்று' என்பது கடந்தகாலத்தை குறிக்கும்." },
+  { sentence: "நாங்கள் ____ பாடலை கேட்டோம்.", chapter:"வினை", options:["நாற்காலி","இனிமையான","வெப்பம்","நீர்"], answer:1, explanation:"'இனிமையான பாடல்' என்பது பொருத்தமான பெயரடை + பெயர்ச்சொல் இணைப்பு." },
+  { sentence: "அவர் ஒரு ____ மனிதர்.", chapter:"பண்பு", options:["மண்","மரம்","நல்ல","காகம்"], answer:2, explanation:"'நல்ல' என்பது குணத்தைச் சொல்லும் பண்புப்பெயர்." },
+  { sentence: "நீ எப்போது பள்ளிக்கு ____?", chapter:"வினைவினா", options:["அந்த","இந்த","செல்கிறாய்","பள்ளி"], answer:2, explanation:"காலத்தைப் பற்றி கேட்கும் கேள்விக்கு 'செல்கிறாய்' சரி." },
+  { sentence: "அது ஒரு ____ நாள்.", chapter:"பண்பு", options:["மழை","மரம்","சுவர்","நூல்"], answer:0, explanation:"'மழை நாள்' என்பது பொருத்தமான பெயரடை + பெயர்ச்சொல் இணைப்பு." },
+  { sentence: "அவள் புத்தகத்தை ____ படித்தாள்.", chapter:"வினை", options:["அவர்","சாலை","ஆர்வமாக","மரம்"], answer:2, explanation:"'ஆர்வமாக' என்பது 'enthusiastically' என்பதை குறிக்கும்." },
+  { sentence: "நான் தினமும் ____ செல்வேன்.", chapter:"பழக்கம்", options:["பட்டு","வெப்பம்","பள்ளிக்கு","கட்டிடம்"], answer:2, explanation:"'பள்ளிக்கு செல்வேன்' என்பது வழக்கமான செயலைக் குறிக்கும்." },
+  { sentence: "நீங்கள் எத்தனை மணிக்கு ____ வந்தீர்கள்?", chapter:"வினைவினா", options:["மணல்","அப்போது","வீடு","நீர்மம்"], answer:1, explanation:"'அப்போது' என்பது நேரத்தைச் சொல்லும் அடைமொழி." },
+  { sentence: "____ ஒரு நல்ல மாணவன்.", chapter:"சுட்டுச்சொல்", options:["கல்","இவன்","மரம்","வீடு"], answer:1, explanation:"'இவன்' என்பது அருகில் உள்ள ஆணைக் குறிக்கும் சுட்டுச்சொல்." },
+  { sentence: "அவள் ஒரு அழகான ____.", chapter:"பெயர்ச்சொல்", options:["தூசி","விழா","பெண்","மரம்"], answer:2, explanation:"'அழகான பெண்' என்பது பொருத்தமான பெயரடை மற்றும் பெயர்." },
+  { sentence: "நாங்கள் நேற்று ____ சென்றோம்.", chapter:"இடம்", options:["நாய்","மலைக்கு","மணல்","மரம்"], answer:1, explanation:"'மலைக்கு' என்பது இடப்பெயர் மற்றும் விகுதி இணைப்பு." },
+  { sentence: "நான் அவனுடன் ____ பேசினேன்.", chapter:"இணைப்புச் சொல்", options:["மற்றும்","ஆனால்","அதனால்","விட்டு"], answer:2, explanation:"'அதனால்' என்பது காரணத்தைக் காட்டும் இணைப்புச் சொல்." },
+  { sentence: "அவனது பெயர் மிகவும் ____.", chapter:"பண்பு", options:["வீடு","அருமையானது","நாய்","பூ"], answer:1, explanation:"'அருமையான' என்பது குணத்தைச் சொல்லும் பண்புப்பெயர்." },
+  { sentence: "நான் தினமும் ____ எழுந்திருப்பேன்.", chapter:"காலம்", options:["அதிகாலை","பக்கம்","மணி","மரம்"], answer:0, explanation:"'அதிகாலை' என்பது காலத்தைச் சொல்லும் சொல்." },
+  { sentence: "நாங்கள் ஒரு ____ வாங்கினோம்.", chapter:"பெயர்ச்சொல்", options:["அவர்","மிதிவண்டி","நல்ல","பொறு"], answer:1, explanation:"'மிதிவண்டி' என்பது பொருளைக் குறிக்கும் பெயர்ச்சொல்." },
+  { sentence: "____ மாணவர்கள் போட்டியில் கலந்து கொண்டார்கள்.", chapter:"எண்சொல்", options:["மூன்று","பல்","மரம்","வீடு"], answer:0, explanation:"'மூன்று மாணவர்கள்' என்பது எண்ணைக் குறிக்கும் எண்சொல்." },
+  { sentence: "அவன் சாப்பிட்டது ____.", chapter:"சுட்டுபெயர்", options:["சுவர்","அது","மரம்","நீர்"], answer:1, explanation:"'அது' என்பது சுட்டுபெயர், ஏற்கனவே குறிப்பிடப்பட்டதை குறிக்கும்." },
+  { sentence: "நீ பாடம் ____ முடித்தாயா?", chapter:"வினை", options:["சுவர்","முழுமையாக","மரம்","மணல்"], answer:1, explanation:"'முழுமையாக' என்பது செயலை விளக்கும் அடைமொழி." },
+  { sentence: "நான் அவளை ____ பார்த்தேன்.", chapter:"காலம்", options:["நேற்று","வீடு","பின்","மரம்"], answer:0, explanation:"'நேற்று' என்பது கடந்தகாலம்." },
+  { sentence: "அவர் ____ பேசுகிறார்.", chapter:"பண்பு", options:["நாய்","மெதுவாக","வீடு","பல்"], answer:1, explanation:"'மெதுவாக' என்பது செயலை விளக்கும் அடைமொழி." },
+  { sentence: "நாம் ____ சாப்பிட வேண்டும்.", chapter:"வினையாட்சி", options:["இப்போதே","அவர்","மரம்","வீடு"], answer:0, explanation:"'இப்போதே' என்பது கால அடைமொழி; கட்டளை உணர்த்துகிறது." },
+  { sentence: "அது ஒரு ____ வண்ணம்.", chapter:"பெயரடை", options:["மரம்","நீல","நாய்","மண்"], answer:1, explanation:"'நீல வண்ணம்' என்பது நிறத்தைக் கூறும் பெயரடை." },
+  { sentence: "____ வானம் மழை பெய்தது.", chapter:"சுட்டுச்சொல்", options:["அன்று","பல்","மரம்","மண்"], answer:0, explanation:"'அன்று' என்பது தூரத்தில் உள்ள பொருளைச் சுட்டும் சொல்." },
+  { sentence: "அவன் ____ ஓடினான்.", chapter:"வினை", options:["பல்","மரம்","சுவர்","வேகமாக"], answer:3, explanation:"'வேகமாக' என்பது செயலைச் சொல்லும் அடைமொழி." },
+  { sentence: "நான் புத்தகத்தை ____ வைத்தேன்.", chapter:"இடம்", options:["வீடு","மண்","மேசையின் மீது","நாய்"], answer:2, explanation:"'மேசையின் மீது' என்பது இடத்தைச் சொல்லும் சொல்." },
+  { sentence: "அவள் ____ பாடுகிறாள்.", chapter:"பண்பு", options:["வீடு","இனிமையாக","மரம்","நாய்"], answer:1, explanation:"'இனிமையாக' என்பது பாடல் குணத்தைச் சொல்லும் சொல்." },
+  { sentence: "நீ இன்று ____ வருவாயா?", chapter:"காலம்", options:["வீடியோ","மாலை","மரம்","நாய்"], answer:1, explanation:"'மாலை' என்பது நாளின் ஒரு பகுதியைச் சொல்லும் காலம்." },
+  { sentence: "அவர்கள் ____ விளையாடுகின்றனர்.", chapter:"இடம்", options:["சுவர்","மரம்","மைதானத்தில்","வீடு"], answer:2, explanation:"'மைதானத்தில்' என்பது விளையாட்டுக்கான இடம்." },
+  { sentence: "அது என் ____.", chapter:"உடைமைச்சொல்", options:["பேனா","மரங்கள்","சாலைகள்","மண்"], answer:0, explanation:"'என் பேனா' என்பது உடைமைத் தொடர்பைக் காட்டுகிறது." },
+  { sentence: "நீங்கள் ____ வருகிறீர்கள்?", chapter:"வினைவினா", options:["மரம்","எங்கிருந்து","வீடு","நாய்"], answer:1, explanation:"'எங்கிருந்து' என்பது இடத்தை வினாவும் சொல்." },
+  { sentence: "அவன் ஒவ்வொரு காலைமும் பள்ளிக்குச் _____________.", chapter:"காலம்", options:["சென்றான்","செல்கிறான்","சென்றுகொண்டான்","செல்வான்"], answer:1, explanation:"‘ஒவ்வொரு காலை’ என்பது பழக்கத்தைக் குறிக்கும். அதனால் தற்போதைக்காலம் ‘செல்கிறான்’ சரி." },
+  { sentence: "விண்மீன்கள் இரவில் வானில் _____________.", chapter:"திமை", options:["மின்னுகின்றன","மின்னின","மின்னு","மின்னி"], answer:0, explanation:"இரவில் நிகழும் செயல் என்பதால் நிகழ்காலம் ‘மின்னுகின்றன’ சரி." },
+  { sentence: "அவள் அழகாகப் பாட _____________.", chapter:"வினை", options:["அறிந்தாள்","அறிகிறாள்","அறிவாள்","அறிந்திருப்பாள்"], answer:1, explanation:"‘அவள்’ என்பதால் நிகழ்கால வினைச்சொல் ‘அறிகிறாள்’ பொருந்தும்." },
+  { sentence: "மழை பெய்தால் நிலம் _____________.", chapter:"இமை", options:["நனை","நனைந்து","நனைந்தது","நனைகிறது"], answer:3, explanation:"‘பெய்தால்’ என்பதால் நிகழ்கால வினை ‘நனைகிறது’ பொருந்தும்." },
+  { sentence: "அவர்கள் பூங்காவில் விளையாடி _____________.", chapter:"வினை", options:["இருந்தார்கள்","இருக்கிறார்கள்","இருப்பார்கள்","இருந்தனர்"], answer:1, explanation:"‘அவர்கள்’ என்பதால் பன்மை நிகழ்காலம் ‘இருக்கிறார்கள்’ சரியானது." },
+  { sentence: "நேற்று நான் பாலை _____________.", chapter:"காலம்", options:["குடிக்கிறேன்","குடித்தேன்","குடிப்பேன்","குடித்துக்கொள்கிறேன்"], answer:1, explanation:"‘நேற்று’ என்பது இறந்தகாலச் சொல். ஆகவே ‘குடித்தேன்’ சரியானது." },
+  { sentence: "நாளை நீ பள்ளிக்குச் _____________.", chapter:"காலம்", options:["சென்றாய்","செல்வாள்","செல்வாய்","சென்றிருந்தாய்"], answer:2, explanation:"‘நாளை’ என்பதால் எதிர்காலம் ‘செல்வாய்’ சரியானது." },
+  { sentence: "அவள் புத்தகத்தை மிகச் செம்மையாக _____________.", chapter:"வினை", options:["படித்தான்","படிக்கிறாள்","படிப்பார்","படித்திரு"], answer:1, explanation:"இப்போது படிக்கும் செயலைக் குறிக்கும். ஆகவே ‘படிக்கிறாள்’ சரி." },
+  { sentence: "நான் நேற்று ஒரு கடிதம் _____________.", chapter:"வினை", options:["எழுதியேன்","எழுதுகிறேன்","எழுதுவேன்","எழுதி கொள்ளலாம்"], answer:0, explanation:"‘நேற்று’ என்பதால் இறந்தகாலம் ‘எழுதியேன்’ சரியானது." },
+  { sentence: "பறவைகள் காலை நேரத்தில் இனிமையாக _____________.", chapter:"திமை", options:["பாடுகின்றன","பாடினார்","பாடு","பாடினார்கள்"], answer:0, explanation:"நிகழ்காலப் பன்மை செயல் என்பதால் ‘பாடுகின்றன’ சரியானது." },
+  { sentence: "அவன் உணவை _____________.", chapter:"இமை", options:["உண்ணுகிறாள்","உண்டான்","உண்பார்","உருண்டான்"], answer:1, explanation:"இப்போது நடக்கும் செயல் என்பதால் ‘உண்ணுகிறான்’ சரியானது." },
+  { sentence: "நாய் தோட்டத்தில் _____________.", chapter:"திமை", options:["ஓட்டுகிறது","ஓடியது","ஓடுவான்","ஓடியிருந்ததான்"], answer:1, explanation:"நிகழ்கால செயல் என்பதால் ‘ஓடுகிறது’ சரி." },
+  { sentence: "குழந்தைகள் மகிழ்ச்சியாக _____________.", chapter:"வினை", options:["விளையாடினாள்","விளையாடுகின்றான்","விளையாடுவார்","விளையாடினார்கள்"], answer:3, explanation:"‘இப்போது’ என்ற உணர்வை தருவதால் ‘விளையாடுகின்றனர்’ சரி." },
+  { sentence: "அவனுக்கு புத்தகம் _____________.", chapter:"இமை", options:["இல்லாமல்","இருக்கிறது","இருந்தாள்","இருக்கும்"], answer:1, explanation:"இப்போது உள்ளது என்பதால் ‘இருக்கிறது’ சரி." },
+  { sentence: "நேற்று மழை நன்கு _____________.", chapter:"காலம்", options:["பெய்கிறது","பெய்தது","பெய்யும்","பெய்திரு"], answer:1, explanation:"‘நேற்று’ என்பதால் இறந்தகாலம் ‘பெய்தது’ சரியானது." },
+  { sentence: "நாளை நாம் திருவிழாவிற்கு _____________.", chapter:"காலம்", options:["செல்வோம்","சென்றோம்","செல்","சென்றிருந்தோம்"], answer:0, explanation:"‘நாளை’ என்பதால் எதிர்கால வினை ‘செல்வோம்’ சரியானது." },
+  { sentence: "நேற்று இதே நேரத்தில் வயலில் உழவர்கள் உழுது _____________.", chapter:"வினை", options:["கொண்டிருக்கின்றனர்","கொண்டிருந்தனர்","கொண்டிருப்பார்கள்","கொண்டிருந்தான்"], answer:1, explanation:"நிகழ்காலப் பன்மை தொடர்ச்சி வினை ‘கொண்டிருக்கின்றனர்’ சரியானது." },
+  { sentence: "மரம் நிழல் _____________.", chapter:"இமை", options:["தருகிறது","தந்ததும்","தருவதும்","தருகிரது"], answer:0, explanation:"இப்போது செயல் நிகழ்வதால் ‘தருகிறது’ சரியானது." },
+  { sentence: "நேற்று ஆசிரியர் வகுப்பறைக்கு _____________.", chapter:"திமை", options:["வந்தார்","வருகிறார்","வருவார்","வரலாம்"], answer:0, explanation:"இறந்தகாலச் செயல் என்பதால் ‘வந்தார்’ சரி." },
+  { sentence: "நீ புத்தகத்தை நாளை _____________.", chapter:"காலம்", options:["கொடுத்தாய்","கொடுக்கிறார்","கொடுப்பாய்","கொடுத்திருந்தாய்"], answer:2, explanation:"‘நாளை’ என்பதால் எதிர்கால வினை ‘கொடுப்பாய்’ சரியானது." },
+  { sentence: "அந்த பறவை வானில் _____________.", chapter:"திமை", options:["பறக்கிறது","பறந்தன","பறக்குமா","பறந்திருந்தது"], answer:0, explanation:"நிகழ்கால செயல் என்பதால் ‘பறக்கிறது’ சரியானது." },
+  { sentence: "மாணவர்கள் பாடத்தை நன்கு _____________.", chapter:"வினை", options:["படிக்கிறார்கள்","படித்தார்","படிப்பா","படித்திரு"], answer:0, explanation:"இப்போது செயல் நிகழ்வதால் ‘படிக்கிறார்கள்’ சரியானது." },
+  { sentence: "நேற்று நான் கடிதம் _____________.", chapter:"காலம்", options:["எழுதினேன்","எழுதுகிறேன்","எழுதுவேன்","எழுதியிருப்பேன்"], answer:0, explanation:"இறந்தகாலச் சொல் என்பதால் ‘எழுதியேன்’ சரியானது." },
+  { sentence: "பூங்காவில் குழந்தைகள் மகிழ்ச்சியாக _____________.", chapter:"வினை", options:["விளையாட","விளையாடுகின்றனர்","விளையாடுவாள்","விளையாடு"], answer:1, explanation:"நிகழ்கால செயல் என்பதால் ‘விளையாடுகின்றனர்’ சரியானது." },
+  { sentence: "மலர்கள் காலையில் இனிமையாக _____________.", chapter:"இமை", options:["மலர்கின்றன","மலர்ந்த","மலரும்","மலர்ந்திருந்த"], answer:0, explanation:"இப்போது மலர்வதால் ‘மலர்கின்றன’ சரியானது." },
+  { sentence: "அவள் நேற்று பாடத்த _____________.", chapter:"காலம்", options:["படித்தாள்","படிக்கிறாள்","படிப்பாள்","படித்திருப்பாள்"], answer:0, explanation:"‘நேற்று’ என்பதால் இறந்தகாலம் ‘படித்தாள்’ சரி." },
+  { sentence: "நாளை மழை _____________.", chapter:"காலம்", options:["பெய்தது","பெய்கிறது","பெய்யும்","பெய்திரு"], answer:2, explanation:"எதிர்காலம் என்பதால் ‘பெய்யும்’ சரியானது." },
+  { sentence: "நான் தினமும் பாலை _____________.", chapter:"இமை", options:["குடிக்கிறேன்","குடித்தேன்","குடி","குடித்திரு"], answer:0, explanation:"பழக்கச் செயல் என்பதால் நிகழ்காலம் ‘குடிக்கிறேன்’ சரியானது." },
+  { sentence: "குட்டி நாய் சாலையில் _____________.", chapter:"திமை", options:["ஓடுகிறது","ஓடு","ஓடும்","ஓடியிரு"], answer:0, explanation:"இப்போது செயல் நிகழ்வதால் ‘ஓடுகிறது’ சரியானது." },
+  { sentence: "அவர்கள் நேற்று கல்லூரிக்கு _____________.", chapter:"காலம்", options:["சென்றனர்","செல்கிறார்கள்","செல்வார்கள்","சென்றிரு"], answer:0, explanation:"இறந்தகாலச் செயல் என்பதால் ‘சென்றனர்’ சரியானது." },
+  { sentence: "நாம் நாளை விழாவிற்கு _____________.", chapter:"காலம்", options:["செல்வோம்","சென்றோம்","செல்கிறோம்","சென்றிரு"], answer:0, explanation:"எதிர்காலம் என்பதால் ‘செல்வோம்’ சரி." },
+  { sentence: "புத்தகம் மேசையின் மேல் _____________.", chapter:"இமை", options:["இருக்கிறது","இருந்ததால்","இருக்குமா","இரு"], answer:0, explanation:"இப்போது இருப்பதால் ‘இருக்கிறது’ சரியானது." },
+  { sentence: "நான் பாடலை இனிமையாக _____________.", chapter:"வினை", options:["பாடுகிறேன்","பாடினார்","பாடுவான்","பாடி"], answer:0, explanation:"நிகழ்காலச் செயல் என்பதால் ‘பாடுகிறேன்’ சரியானது." },
+  { sentence: "அவர்கள் பூங்காவிற்கு மாலைப்பொழுதில் _____________.", chapter:"திமை", options:["செல்வார்","சென்றன","செல்கிறார்கள்","சென்றிரு"], answer:2, explanation:"இப்போது நடக்கும் செயல் என்பதால் ‘செல்கிறார்கள்’ சரியானது." },
+  { sentence: "நாளை மின்சாரம் _____________.", chapter:"இமை", options:["வரும்","வந்தது","வருகிறேன்","வந்திருந்தது"], answer:0, explanation:"எதிர்காலச் செயல் என்பதால் ‘வரும்’ சரியானது." },
+  { sentence: "நேற்று ஆசிரியர் வகுப்பில் பாடம் _____________.", chapter:"திமை", options:["நடத்தினார்","பாடுகிறார்","பாடிப்பார்","பாடித்தார்"], answer:0, explanation:"இறந்தகாலச் செயல் என்பதால் ‘நடத்தினார்’ சரியானது." },
+  { sentence: "அவன் நாளை பந்தயத்தில் _____________.", chapter:"காலம்", options:["பங்கேற்பான்","பங்கேற்றான்","பங்கேற்கிறாள்","பங்கேற்றிருந்தான்"], answer:0, explanation:"எதிர்கால வினை ‘பங்கேற்பான்’ சரியானது." },
+  { sentence: "அவள் தினமும் பூக்களை _____________.", chapter:"வினை", options:["அணி","அணிந்தார்","அணிகிறாள்","அணிந்திருப்பான்"], answer:2, explanation:"பழக்கச்செயல் என்பதால் ‘அணிகிறாள்’ சரியானது." },
+  { sentence: "மழை பெய்யும் போது குடை _____________.", chapter:"இமை", options:["தேவை","தந்தது","தரும்","தருகிறது"], answer:3, explanation:"நிகழ்காலச் செயல் என்பதால் ‘தருகிறது’ சரியானது." },
+  { sentence: "நேற்று மின் விளக்கு _____________.", chapter:"திமை", options:["எரிந்தது","எரிகிறது","எரியும்","எரிந்த"], answer:0, explanation:"இறந்தகால செயல் என்பதால் ‘எரிந்தது’ சரி." },
+  { sentence: "நீங்கள் நாளை பாடம் _____________.", chapter:"காலம்", options:["படிப்பீர்கள்","படித்தீர்கள்","படிக்கிறீர்கள்","படித்திருந்தீர்கள்"], answer:0, explanation:"எ016்கால வினைச்சொல் ‘படிப்பீர்கள்’ சரியானது." },
+  { sentence: "அவள் காலை நேரத்தில் பால் _____________.", chapter:"இமை", options:["குடிக்கிறாள்","குடித்தான்","குடிப்பாள்","குடித்திருப்பார்"], answer:0, explanation:"நிகழ்காலச் செயல் என்பதால் ‘குடிக்கிறாள்’ சரியானது." },
+  { sentence: "நாம் தினமும் பள்ளிக்குச் _____________.", chapter:"வினை", options:["செல்கிறோம்","சென்றோ","செல்","சென்றிரு"], answer:0, explanation:"நிகழ்கால பழக்கம் என்பதால் ‘செல்கிறோம்’ சரி." },
+  { sentence: "மீன்கள் தண்ணீரில் _____________.", chapter:"திமை", options:["நீந்துகின்றன","நீந்தி","நீந்து","நீந்தினன"], answer:0, explanation:"இப்போது செயல் நிகழ்வதால் ‘நீந்துகின்றன’ சரியானது." },
+  { sentence: "நேற்று நாங்கள் பாடம் _____________.", chapter:"காலம்", options:["படித்தோம்","படிக்கிறோம்","படிப்போம்","படித்திரு"], answer:0, explanation:"இறந்தகால செயல் என்பதால் ‘படித்தோம்’ சரியானது." },
+  { sentence: "நாளை அவர்கள் பூங்காவிற்கு _____________.", chapter:"காலம்", options:["செல்வார்கள்","சென்றார்கள்","செல்கிறார்","சென்றிருந்த"], answer:0, explanation:"எதிர்காலச் செயல் என்பதால் ‘செல்வார்கள்’ சரியானது." },
+  { sentence: "அவன் கையில் ஒரு புத்தகம் _____________.", chapter:"இமை", options:["இருக்கிற","இருந்ததாக","இரு","இருந்தது"], answer:0, explanation:"இப்போது இருப்பதால் ‘இருக்கிற’ சரி." },
+  { sentence: "அந்த மரம் வேருடன் _____________.", chapter:"திமை", options:["விழுந்தது","விழுகிறார்","வீழ்","விழுந்து"], answer:0, explanation:"இறந்தகாலச் செயல் என்பதால் ‘விழுந்தது’ சரியானது." },
+  { sentence: "மாணவர்கள் வகுப்பில் அமைதியாக _____________.", chapter:"வினை", options:["உலர்","உல்லார்கள்","இருக்கிறார்கள்","இருந்தார்"], answer:2, explanation:"நிகழ்காலப் பன்மை வினை ‘இருக்கிறார்கள்’ சரியானது." },
+  { sentence: "பூக்கள் தோட்டத்தில் இனிமையாக _____________.", chapter:"திமை", options:["மலர்கின்றன","மலர்ந்தான","மலரு","மலர்ந்திரு"], answer:0, explanation:"நிகழ்காலச் செயல் என்பதால் ‘மலர்கின்றன’ சரியானது." },
+  { sentence: "நான் நாளை வீட்டிற்கு _____________.", chapter:"காலம்", options:["செல்வேன்","சென்றேன்","செல்கின்ற","சென்றிரு"], answer:0, explanation:"எதிர்காலம் என்பதால் ‘செல்வேன்’ சரியானது." },
+  { sentence: "அவர்கள் தினமும் புத்தகம் _____________.", chapter:"வினை", options:["படிக்கிறார்கள்","படித்தார்கள்","படிப்பார்","படித்து"], answer:0, explanation:"நிகழ்காலச் செயல் என்பதால் ‘படிக்கிறார்கள்’ சரியானது." }
+];
+
+/* ======= Game state ======= */
+let qIndex = 0;
+let score = 0;
+let running = false;
+let selected = null;
+let chapterStats = {};
+let gameQuestions = [];
+let lastFinalPctVal = 0;
+let lastExcellentChapters = [];
+let lastNeedsWorkChapters = [];
+
+/* ======= DOM ======= */
+const sentenceEl = document.getElementById('sentence');
+const optionsEl = document.getElementById('options');
+const feedbackEl = document.getElementById('feedback');
+const submitBtn = document.getElementById('submitBtn');
+const skipBtn = document.getElementById('skipBtn');
+const startBtn = document.getElementById('startBtn');
+const qIndexEl = document.getElementById('qIndex');
+const qTotalEl = document.getElementById('qTotal');
+const progressBar = document.getElementById('progressBar');
+const currentScoreEl = document.getElementById('currentScore');
+const hallEl = document.getElementById('hall');
+const showHofBtn = document.getElementById('showHofBtn');
+const hofListEl = document.getElementById('hofList');
+const saveHofBtn = document.getElementById('saveHofBtn');
+const hofNameInput = document.getElementById('hofName');
+const certCanvas = document.getElementById('certificate');
+const certDownloadLink = document.getElementById('certDownloadLink');
+
+const HOF_KEY = 'tamilGrammarHOF';
+const HOF_THRESHOLD = 60;
+
+/* ======= Helpers ======= */
+function shuffle(arr){ for(let i=arr.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [arr[i],arr[j]]=[arr[j],arr[i]] } }
+function getRemark(pct){
+  if(pct >= 90) return 'அற்புதம்! தொடருங்கள்.';
+  if(pct >= 75) return 'நன்று! மேலும் பயிற்சி செய்யவும்.';
+  if(pct >= 50) return 'சிறப்பாக இருக்கிறது! முயற்சி தொடருங்கள்.';
+  if(pct > 0) return 'நல்ல முயற்சி! மேலும் பயிற்சி தேவை.';
+  return 'மறுபடி முயற்சி செய்து திறன் மேம்படுத்துங்கள்!';
+}
+
+/* ======= Render ======= */
+function renderQuestion(){
+  if(qIndex >= gameQuestions.length){ endGame(); return; }
+  selected = null;
+  feedbackEl.textContent = '';
+  const q = gameQuestions[qIndex];
+  sentenceEl.textContent = q.sentence;
+  optionsEl.innerHTML = '';
+  q.options.forEach((opt, i) => {
+    const btn = document.createElement('div');
+    btn.className = 'opt';
+    btn.tabIndex = 0;
+    btn.textContent = opt;
+    btn.addEventListener('click', ()=> selectOption(i, btn));
+    btn.addEventListener('keydown', e=> { if(e.key==='Enter' || e.key===' ') selectOption(i, btn); });
+    optionsEl.appendChild(btn);
+  });
+  qIndexEl.textContent = qIndex + 1;
+  qTotalEl.textContent = gameQuestions.length;
+  updateProgress();
+}
+
+function selectOption(i, el){
+  document.querySelectorAll('.opt').forEach(x => x.classList.remove('selected'));
+  el.classList.add('selected');
+  selected = i;
+  feedbackEl.textContent = '';
+}
+
+function calculatePercentage(){
+  const attempted = Math.min(qIndex + 1, gameQuestions.length);
+  if(attempted === 0) return 0;
+  return (score / attempted) * 100;
+}
+
+function updateScoreDisplay(){
+  const pct = calculatePercentage();
+  const attempted = Math.min(qIndex + 1, gameQuestions.length);
+  currentScoreEl.textContent = `${pct.toFixed(0)}% (${score}/${attempted})`;
+}
+
+function submitAnswer(){
+  if(!running) return;
+  const q = gameQuestions[qIndex];
+  if(selected === null){ feedbackEl.textContent = 'தயவு செய்து ஒரு விருப்பத்தைத் தேர்வு செய்யவும் அல்லது தவிர்க்கவும்.'; return; }
+  const opts = document.querySelectorAll('.opt');
+  opts.forEach((el, idx) => {
+    if(idx === q.answer) el.classList.add('correct');
+    if(idx === selected && idx !== q.answer) el.classList.add('wrong');
+  });
+  if(selected === q.answer){
+    score++;
+    feedbackEl.textContent = 'சரி! +1';
+    feedbackEl.style.color = '#0b6';
+    const chap = q.chapter;
+    if(chapterStats[chap]){
+      chapterStats[chap].correct++;
+      chapterStats[chap].total++;
+    }
+  } else {
+    feedbackEl.textContent = 'தவறு. ' + q.explanation;
+    feedbackEl.style.color = '#b22222';
+    const chap = q.chapter;
+    if(chapterStats[chap]){
+      chapterStats[chap].total++;
+    }
+  }
+  updateScoreDisplay();
+  setTimeout(() => {
+    qIndex++;
+    if(qIndex < gameQuestions.length) renderQuestion(); else endGame();
+  }, 1300);
+}
+
+function updateProgress(){
+  const pct = Math.round((qIndex / gameQuestions.length) * 100);
+  progressBar.style.width = pct + '%';
+}
+
+function startGame(){
+  const shuffled = [...questions];
+  shuffle(shuffled);
+  gameQuestions = shuffled.slice(0, 10);
+  qIndex = 0; score = 0; running = true;
+  currentScoreEl.textContent = '0% (0/0)';
+  feedbackEl.textContent = '';
+  chapterStats = {};
+  gameQuestions.forEach(q => {
+    if(!chapterStats[q.chapter]){ chapterStats[q.chapter] = { correct: 0, total: 0 }; }
+  });
+  qTotalEl.textContent = gameQuestions.length;
+  renderQuestion();
+}
+
+function endGame(){
+  running = false;
+  const finalPctVal = (score / gameQuestions.length) * 100;
+  const remark = getRemark(finalPctVal);
+  const excellent = [];
+  const needsWork = [];
+  for(const chap in chapterStats){
+    const stats = chapterStats[chap];
+    if(stats.total > 0){
+      const acc = stats.correct / stats.total;
+      if(acc >= 0.7) excellent.push(chap);
+      else if(acc <= 0.5) needsWork.push(chap);
+    } else {
+      needsWork.push(chap);
+    }
+  }
+  let summaryMessage = '';
+  if(excellent.length > 0){ summaryMessage += ` சிறப்பாகச் செயல்பட்ட பகுதிகள்: ${excellent.join(', ')}.`; }
+  if(needsWork.length > 0){ summaryMessage += ` மேம்பாடு தேவைப் பகுதிகள்: ${needsWork.join(', ')}.`; }
+  feedbackEl.style.color = '#333';
+  feedbackEl.textContent = `வினாத் தொடர் முடிந்தது — நீங்கள் ${finalPctVal.toFixed(0)}% (${score}/${gameQuestions.length}) பெற்றுள்ளீர்கள். ${remark}${summaryMessage}`;
+  if(finalPctVal >= HOF_THRESHOLD){
+    alert('உங்கள் மதிப்பெண் Hall of Fame இதற்கு தகுதி பெறுகிறது. உங்கள் பெயரை Hall of Fame பகுதியில் சேமிக்கவும்.');
+    hallEl.classList.remove('hidden');
+    populateHOF();
+  }
+  lastFinalPctVal = finalPctVal;
+  lastExcellentChapters = excellent;
+  lastNeedsWorkChapters = needsWork;
+  generateCertificate(finalPctVal, excellent, needsWork);
+}
+
+/* ======= Hall of Fame (localStorage) ======= */
+function loadHOF(){ try { return JSON.parse(localStorage.getItem(HOF_KEY) || '[]'); } catch(e){ return []; } }
+function saveHOF(list){ localStorage.setItem(HOF_KEY, JSON.stringify(list)); }
+function populateHOF(){
+  hofListEl.innerHTML = '';
+  const list = loadHOF().sort((a,b) => b.score - a.score).slice(0,10);
+  if(list.length === 0){ hofListEl.innerHTML = '<div style="padding:8px;color:#666">ஏதும் இல்லை</div>'; return; }
+  list.forEach((it, idx) => {
+    const div = document.createElement('div');
+    div.className = 'hof-item';
+    div.innerHTML = `<div>${idx+1}. ${escapeHtml(it.name)}</div><div>${it.score.toFixed(0)}%</div>`;
+    hofListEl.appendChild(div);
+  });
+}
+
+function saveMyHOFEntry(){
+  const name = (hofNameInput.value || 'அனன்யா').trim();
+  if(!name){ alert('முதலில் பெயரை உள்ளிடுங்கள்'); return; }
+  const percentage = ((score / gameQuestions.length) * 100);
+  const list = loadHOF();
+  list.push({ name, score: percentage });
+  saveHOF(list);
+  populateHOF();
+  alert('Hall of Fame இல் சேமிக்கப்பட்டது.');
+}
+
+/* ======= Certificate generation ======= */
+function generateCertificate(finalPctVal, excellentChapters = [], needsWorkChapters = []){
+  const ctx = certCanvas.getContext('2d');
+  ctx.clearRect(0,0,certCanvas.width,certCanvas.height);
+  ctx.fillStyle = '#fff';
+  ctx.fillRect(0,0,certCanvas.width,certCanvas.height);
+  ctx.strokeStyle = '#2b6cb0';
+  ctx.lineWidth = 8;
+  ctx.strokeRect(30,30,certCanvas.width-60,certCanvas.height-60);
+  // Gather inputs
+  const nameInput = document.getElementById('playerName');
+  const classInput = document.getElementById('playerClass');
+  const sectionInput = document.getElementById('playerSection');
+  let nameVal = '';
+  if(nameInput && nameInput.value) nameVal = nameInput.value;
+  if(!nameVal){ const hofNameEl = document.getElementById('hofName'); if(hofNameEl && hofNameEl.value){ nameVal = hofNameEl.value; } }
+  if(!nameVal){ nameVal = 'Player'; }
+  const classVal = classInput && classInput.value ? classInput.value : '';
+  const sectionVal = sectionInput && sectionInput.value ? sectionInput.value : '';
+  const name = nameVal.toUpperCase();
+  // Header
+  ctx.fillStyle = '#2b6cb0';
+  ctx.font = '40px Georgia';
+  let text = 'திறன் தமிழ் தேர்வு';
+  let metrics = ctx.measureText(text);
+  let x = (certCanvas.width - metrics.width) / 2;
+  ctx.fillText(text, x, 100);
+  ctx.font = '60px Georgia';
+  text = 'அடைவு சான்றிதழ் ';
+  metrics = ctx.measureText(text);
+  x = (certCanvas.width - metrics.width) / 2;
+  ctx.fillText(text, x, 170);
+  ctx.fillStyle = '#333';
+  ctx.font = '32px Arial';
+  text = 'திறன் கொள்குறி தேர்வு மூலம் இந்த சான்றிதழ் அளிக்கப்படுகிறது';
+  metrics = ctx.measureText(text);
+  x = (certCanvas.width - metrics.width) / 2;
+  ctx.fillText(text, x, 230);
+  ctx.font = 'bold 46px Arial';
+  ctx.fillStyle = '#0b6';
+  ctx.fillText(name, 90, 290);
+  ctx.font = '24px Arial';
+  ctx.fillStyle = '#333';
+  let classSectionLine = '';
+  if(classVal) classSectionLine += `Class: ${classVal}`;
+  if(sectionVal){ if(classSectionLine) classSectionLine += '   '; classSectionLine += `Section: ${sectionVal}`; }
+  if(classSectionLine){ ctx.fillText(classSectionLine, 90, 330); }
+  const pctRounded = finalPctVal.toFixed(0);
+  ctx.font = '24px Arial';
+  ctx.fillStyle = '#333';
+  ctx.fillText(`scored ${pctRounded}% (${score}/${gameQuestions.length}) in Tamil Grammar Quiz`, 90, classSectionLine ? 370 : 340);
+  const remark = getRemark(finalPctVal);
+  ctx.font = '20px Arial';
+  ctx.fillStyle = '#555';
+  const remarkY = classSectionLine ? 410 : 380;
+  ctx.fillText(remark, 90, remarkY);
+  const messages = [];
+  if(excellentChapters.length > 0){ messages.push('Excellent in: ' + excellentChapters.join(', ') + '.'); }
+  if(needsWorkChapters.length > 0){ messages.push('Needs more focus on: ' + needsWorkChapters.join(', ') + '.'); }
+  ctx.font = '20px Arial';
+  ctx.fillStyle = '#444';
+  const maxWidth = certCanvas.width - 180;
+  let y = remarkY + 40;
+  messages.forEach(msg => {
+    const words = msg.split(' ');
+    let line = '';
+    words.forEach(word => {
+      const testLine = line + word + ' ';
+      const metrics = ctx.measureText(testLine);
+      if(metrics.width > maxWidth){ ctx.fillText(line.trim(), 90, y); y += 30; line = word + ' '; }
+      else{ line = testLine; }
+    });
+    if(line){ ctx.fillText(line.trim(), 90, y); y += 30; }
+  });
+  const d = new Date().toLocaleDateString();
+  ctx.font = '18px Arial';
+  ctx.fillStyle = '#666';
+  ctx.fillText(`Date: ${d}`, 90, certCanvas.height - 80);
+  const dataURL = certCanvas.toDataURL('image/png');
+  certDownloadLink.href = dataURL;
+  certDownloadLink.style.display = 'inline-block';
+}
+
+function escapeHtml(str){ return String(str).replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m])); }
+
+/* ======= Event listeners ======= */
+submitBtn.addEventListener('click', submitAnswer);
+skipBtn.addEventListener('click', () => {
+  if(!running) return;
+  const q = gameQuestions[qIndex];
+  const chap = q.chapter;
+  if(chapterStats[chap]){ chapterStats[chap].total++; }
+  qIndex++;
+  updateScoreDisplay();
+  if(qIndex < gameQuestions.length){ renderQuestion(); } else { endGame(); }
+});
+startBtn.addEventListener('click', () => { hallEl.classList.add('hidden'); startGame(); });
+showHofBtn.addEventListener('click', () => { hallEl.classList.toggle('hidden'); if(!hallEl.classList.contains('hidden')) populateHOF(); });
+saveHofBtn.addEventListener('click', saveMyHOFEntry);
+certDownloadLink.addEventListener('click', function(){ if(lastFinalPctVal !== undefined){ generateCertificate(lastFinalPctVal, lastExcellentChapters, lastNeedsWorkChapters); } });
+
+/* ======= Init ======= */
+(function init(){
+  qTotalEl.textContent = 20;
+  currentScoreEl.textContent = '0% (0/0)';
+  optionsEl.addEventListener('keydown', e => { if(e.key==='Enter' || e.key===' ') submitAnswer(); });
+  certDownloadLink.style.display = 'none';
+  populateHOF();
+})();
+</script>
+</body>
+</html>
